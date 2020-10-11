@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SimpleProjectForSE02.Dtos;
@@ -12,6 +13,7 @@ namespace SimpleProjectForSE02.Controllers
 {
     // Get api/students => return all Students
     // Post api/students => adds a new student  
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class StudentController : ControllerBase
@@ -23,10 +25,25 @@ namespace SimpleProjectForSE02.Controllers
             _studentRepository = studentRepository;
         }
 
+        [Authorize(Roles = Role.LeaderOfGroup)]
         [HttpGet]
         public ActionResult<IQueryable<Student>> GetStudents()
         {
-            return Ok(_studentRepository.GetStudents());
+            IEnumerable<Student> innerStudents = _studentRepository.GetStudents();
+            ICollection<StudentDto> students = new LinkedList<StudentDto>();
+
+            foreach (Student s in innerStudents)
+            {
+                students.Add(new StudentDto()
+                {
+                    Name = s.Name,
+                    Surname = s.Surname,
+                    Birthday = s.Birthday,
+                    GroupId = s.GroupId
+                });
+            }
+
+            return Ok(students);
         }
 
         [HttpPost]
@@ -35,7 +52,7 @@ namespace SimpleProjectForSE02.Controllers
             Student st = new Student(s);
             if (_studentRepository.AddStudent(st))
             {
-                return Ok("Add a new student");
+                return Ok("A new user was added successfully!");
             }
             return BadRequest("Oops, something wrong happened!");
         }
