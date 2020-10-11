@@ -28,5 +28,13 @@ namespace SimpleProjectForSE02.Repositories
         {
             return _context.Students.Include(x => x.Group).OrderBy(x => x.Name);
         }
+
+        //Master method
+        public static void Swap<T>(ref T a, ref T b)
+        {
+            T temp = a;
+            a = b;
+            b = temp;
+        }
     }
 }
